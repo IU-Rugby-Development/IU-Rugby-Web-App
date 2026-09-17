@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Confirm your IU Rugby account</title></head>
+  <body style="margin:0;background:#fdfcf9;font-family:Arial,Helvetica,sans-serif;color:#171717;">
+    <table role="presentation" style="width:100%;padding:40px 16px;"><tr><td align="center">
+      <table role="presentation" style="width:100%;max-width:520px;background:#ffffff;border:1px solid #e5e7eb;border-top:6px solid #790000;border-radius:8px;"><tr><td style="padding:32px;">
+        <p style="margin:0 0 24px;font-size:14px;font-weight:bold;letter-spacing:2px;color:#790000;">IU RUGBY</p>
+        <h1 style="margin:0 0 16px;font-size:26px;line-height:1.2;">Confirm your account</h1>
+        <p style="margin:0 0 24px;font-size:16px;line-height:1.6;color:#4b5563;">Open the confirmation page, then select “Confirm account” to verify your email address and sign in.</p>
+        <p style="margin:0 0 24px;"><a href="{{ if eq .RedirectTo .SiteURL }}{{ .SiteURL }}/confirm-signup{{ else if .RedirectTo }}{{ .RedirectTo }}{{ else }}{{ .SiteURL }}/confirm-signup{{ end }}?token_hash={{ .TokenHash }}&amp;type=email" style="display:inline-block;background:#790000;color:#ffffff;text-decoration:none;padding:14px 24px;border-radius:6px;font-weight:bold;">Confirm account</a></p>
+        <p style="margin:0;font-size:13px;line-height:1.6;color:#6b7280;">If you didn’t create an IU Rugby account, you can ignore this email. Opening the page alone will not confirm an account.</p>
+      </td></tr></table>
+    </td></tr></table>
+  </body>
+</html>

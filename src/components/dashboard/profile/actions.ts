@@ -35,15 +35,16 @@ export async function updateProfile(
   // Note: no "role" field here. Even if a client tampered with the
   // request to include one, the profiles_update_own_non_role_fields RLS
   // policy rejects any update that changes the caller's own role.
-  const { error } = await supabase
+  const { error, data } = await supabase
     .from("profiles")
     .update({ first_name: parsed.data.firstName, last_name: parsed.data.lastName })
-    .eq("id", user.id);
+    .eq("id", user.id).select("id");
 
-  if (error) {
-    return { error: error.message, success: false };
+  if (error || !data?.length) {
+    return { error: "Your profile could not be saved. Please try again.", success: false };
   }
 
   revalidatePath("/dashboard/profile");
+  revalidatePath("/dashboard");
   return { error: null, success: true };
 }

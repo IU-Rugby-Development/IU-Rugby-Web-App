@@ -1,19 +1,40 @@
 # Authentication
 
-The server client uses Supabase SSR cookies and the public API key. Proxy refreshes the verified user session; pages and actions perform their own checks. Client-side hiding is not an authorization boundary.
+Supabase Auth and custom Resend SMTP are live on project `pkbdrvovnnlrircmtaym`. The sender is IU Rugby <accounts@auth.loganreddell.com>. Secrets remain in Vercel and ignored local environment files.
 
-## Flow
+## Scanner-resistant signup confirmation
 
-Signup validates names/email/password, sends metadata for the profile trigger, and requests email confirmation. The callback exchanges a PKCE code for a session; sign-in redirects to a real dashboard route. Sign-out invalidates the session and refreshes navigation. Both callback next and sign-in redirectTo accept only safe local paths, rejecting protocol-relative, backslash, control-character and encoded variants.
+Email security scanners consumed the old direct Supabase ConfirmationURL before the intended click. Supabase documents this [email-prefetch failure mode](https://supabase.com/docs/guides/auth/auth-email-templates#email-prefetching).
 
-For Preview, email confirmation preserves the browser's Origin only when it exactly matches VERCEL_BRANCH_URL or VERCEL_URL. This keeps the PKCE verifier cookie and callback on the same host whether signup starts on the branch alias or immutable deployment. Other supplied origins cannot become redirect destinations. Referral links default to the stable branch alias when available. Vercel documents these [system environment variables](https://vercel.com/docs/environment-variables/system-environment-variables).
+The replacement flow:
 
-Add the exact /auth/callback URLs for the branch alias and tested immutable deployment to Supabase Authentication → URL Configuration before testing; maintain the allowlist as deployments change. Add http://localhost:3000/auth/callback for authorized local development. A team-scoped wildcard is an optional administrative choice; do not broadly allow all vercel.app hosts.
+1. Signup and resend pass the trusted application `/confirm-signup` URL as `emailRedirectTo`. Preview always chooses the stable branch alias, so a rotating deployment allowlist and PKCE cookie are unnecessary for this flow.
+2. The hosted Confirm sign up template uses `TokenHash` and `RedirectTo`, not `ConfirmationURL`. The complete, versioned HTML is [confirm-signup.html](../supabase/templates/confirm-signup.html). Subject: **Confirm your IU Rugby account**.
+3. GET `/confirm-signup?token_hash=...&type=email` validates the input format, stores a ten-minute HTTP-only, SameSite=Lax cookie scoped to `/confirm-signup`, and redirects to `/confirm-signup/review`. HTTPS cookies are Secure. GET and HEAD never verify a token.
+4. The review screen has a normal HTML POST form. Only explicit submission calls `verifyOtp({ token_hash, type: 'email' })`. POST requires a matching trusted Origin, rejecting cross-site and missing origins.
+5. On success the Supabase SSR client writes the authenticated session cookies to the redirect response, clears the temporary token, and opens `/dashboard?confirmed=1`.
+6. Used/expired/missing tokens lead to a clean app screen with sign-in, home and resend options. The resend response does not disclose whether an account exists. Provider rate limits are respected.
 
-Use the same browser for signup and the email callback because PKCE needs its verifier cookie. Do not disable email confirmation to work around configuration problems. Do not use iurugby.com as this app's origin yet.
+The review URL and HTML contain no token. Confirmation responses use no-store/no-referrer/noindex controls; the initial email URL still contains a bearer credential and can appear in infrastructure access logs. Do not add query-string logging, analytics, link tracking or third-party content to these pages. This protects against GET prefetching, not a scanner that deliberately submits forms.
 
-## What remains unverified
+The legacy `/auth/callback` remains for PKCE code exchange. Its safe local redirect validation remains in place; failure returns the sign-in page, not provider JSON. Existing emails containing the old direct Supabase URL cannot be rewritten. Confirmed users should sign in; unconfirmed users should request a new email from the app.
 
-The live signup → email → callback → dashboard → profile → logout flow, email-confirmation setting, allowed redirects, and existing test accounts remain unverified due to unavailable runtime credentials. No stakeholder credentials were used and no test signup emails were sent.
+## Hosted URL configuration
 
-Missing configuration disables form submission with an accessible unavailable-service message and rejects server actions. Protected routes still redirect to sign-in. This keeps the public information pages available without weakening auth.
+During Phase 1 the Auth Site URL remains the working branch Preview, so dashboard-generated emails and fallback links stay on the deployed application:
+
+`https://iu-rugby-web-app-git-phase1-mvp-hardening-lreddells-projects.vercel.app`
+
+The allowlist supports:
+
+- `https://iu-rugby-web-app-git-phase1-mvp-hardening-lreddells-projects.vercel.app/**`
+- `https://iu-rugby-web-app-lreddells-projects.vercel.app/**`
+- `http://localhost:3000/**`
+
+The old exact callback entries may remain as harmless duplicates. The broad team-wide Vercel wildcard is unnecessary. `NEXT_PUBLIC_SITE_URL` is the canonical app origin for non-Preview configuration. Moving the Auth Site URL to the canonical app belongs to the separately approved production release, after that origin serves this code. No iurugby.com/DNS change is part of this work.
+
+## Authorization and validation
+
+Proxy refreshes the session; pages and every mutation verify their own permissions. Roles come from profiles, never client metadata. New signup profiles stay MEMBER with no automatic stakeholder groups. Profile edits only write names. Admin role changes require explicit Save, compare the expected current role, and cannot demote the acting administrator. Groups remain independent from roles. Auth-directory emails are fetched server-side only after verifying ADMIN.
+
+Automated tests exercise actual GET/POST confirmation routes, SSR cookie persistence, expired tokens, malformed inputs, cross-site POST, signup validation and trusted redirects. Database tests apply all migrations and exercise RLS. See [the engineering report](phase1-report.md) for the actual live verification evidence and remaining account-dependent checks; mocked tests are not proof that an email was received and confirmed live.

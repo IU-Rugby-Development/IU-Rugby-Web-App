@@ -4,6 +4,7 @@ import { getCurrentUser } from "@/lib/auth/session";
 import { canManageEvents } from "@/lib/auth/permissions";
 import { getUpcomingEvents } from "@/lib/calendar/queries";
 import { EventCard } from "@/lib/calendar/event-card";
+import { CalendarEmptyState } from "@/components/calendar/empty-state";
 
 export default async function DashboardCalendarPage() {
   const user = await getCurrentUser();
@@ -26,7 +27,7 @@ export default async function DashboardCalendarPage() {
       </div>
 
       {error ? <p role="alert" className="text-sm text-red-800">{error}</p> : events.length === 0 ? (
-        <p className="text-sm text-gray-600">No upcoming events.</p>
+        <CalendarEmptyState />
       ) : (
         <ul className="flex flex-col gap-3">
           {events.map((event) => (

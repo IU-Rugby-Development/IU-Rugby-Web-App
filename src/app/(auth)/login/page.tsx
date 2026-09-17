@@ -25,9 +25,10 @@ export default async function LoginPage({
         </p>
       )}
 
-      {params.error === "auth_callback_failed" && <p role="alert" className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-800">That confirmation link could not be completed. Try signing in if you have already confirmed your email, or open the latest confirmation link in the browser where you signed up.</p>}
+      {params.error === "auth_callback_failed" && <p role="alert" className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-800">That link may have already been used or expired. Try signing in if you have already confirmed your email, or request a new link below.</p>}
       {!available && <p role="status" className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-900">Account services are temporarily unavailable. Please try again later.</p>}
       <LoginForm redirectTo={params.redirectTo} available={available} />
+      <Link href="/confirm-signup/review" className="text-sm font-medium text-red-700 hover:underline">Resend account confirmation</Link>
 
       <p className="text-sm text-gray-600">
         Don&apos;t have an account?{" "}

@@ -10,7 +10,7 @@ function originOf(value: string | undefined | null): string | null {
   }
 }
 
-/** Keep PKCE callbacks on the browser's trusted origin, including the branch alias. */
+/** Resolve a trusted application origin, including the branch alias. */
 export function getSiteUrl(requestOrigin?: string | null): string {
   const preview = process.env.VERCEL_ENV === "preview";
   const configured = originOf(process.env.NEXT_PUBLIC_SITE_URL);
@@ -22,4 +22,10 @@ export function getSiteUrl(requestOrigin?: string | null): string {
   if (requested && origins.includes(requested)) return requested;
   if (origins[0]) return origins[0];
   throw new Error("Site URL is not configured.");
+}
+
+// Token-hash confirmation works across browsers. Prefer the stable Preview
+// alias so the Auth allowlist need not grow with every immutable deployment.
+export function getConfirmationUrl(requestOrigin?: string | null): string {
+  return `${getSiteUrl(process.env.VERCEL_ENV === "preview" ? undefined : requestOrigin)}/confirm-signup`;
 }

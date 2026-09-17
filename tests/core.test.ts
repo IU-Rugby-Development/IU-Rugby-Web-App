@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { safeRedirectPath } from "../src/lib/auth/redirect";
-import { getSiteUrl } from "../src/lib/site-url";
+import { getSiteUrl, getConfirmationUrl } from "../src/lib/site-url";
 import { isApprovedTicketDestination } from "../src/lib/tickets/destination";
 import { buildSingleEventICS } from "../src/lib/calendar/ics";
 import { eventLocalToISO, toEventLocalInput } from "../src/lib/calendar/time";
@@ -16,7 +16,7 @@ test("auth redirects stay local for hostile and encoded inputs", () => {
   }
   assert.equal(safeRedirectPath("/dashboard/calendar?view=week"), "/dashboard/calendar?view=week");
 });
-test("Preview signup preserves the trusted browser origin and rejects hostile origins", () => {
+test("trusted origins reject hostile hosts and confirmation prefers the stable Preview", () => {
   const names = ["VERCEL_ENV", "VERCEL_URL", "VERCEL_BRANCH_URL", "NEXT_PUBLIC_SITE_URL"] as const;
   const previous = Object.fromEntries(names.map((name) => [name, process.env[name]]));
   try {
@@ -27,6 +27,8 @@ test("Preview signup preserves the trusted browser origin and rejects hostile or
     const branch = "https://club-git-phase1.vercel.app";
     assert.equal(getSiteUrl(branch), branch);
     assert.equal(getSiteUrl("https://club-abc.vercel.app"), "https://club-abc.vercel.app");
+    assert.equal(getConfirmationUrl("https://club-abc.vercel.app"), `${branch}/confirm-signup`);
+    assert.equal(getConfirmationUrl("https://evil.example"), `${branch}/confirm-signup`);
     for (const origin of ["https://evil.example", "https://club-git-phase1.vercel.app.evil.example", "https://production.example", "http://club-git-phase1.vercel.app", "null", null]) {
       assert.equal(getSiteUrl(origin), branch);
     }

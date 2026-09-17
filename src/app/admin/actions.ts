@@ -21,15 +21,17 @@ async function requireAdmin() {
 const roleSchema = z.enum(ROLES);
 
 export async function setUserRole(userId: string, formData: FormData): Promise<MutationResult> {
-  await requireAdmin();
+  const actor = await requireAdmin();
   const role = roleSchema.safeParse(formData.get("role"));
-  if (!z.string().uuid().safeParse(userId).success || !role.success) return { error: "Invalid user or role." };
+  const expectedRole = roleSchema.safeParse(formData.get("expectedRole"));
+  if (!z.string().uuid().safeParse(userId).success || !role.success || !expectedRole.success) return { error: "Invalid user or role." };
+  if (userId === actor.id && role.data !== "ADMIN") return { error: "Another administrator must change your administrator role." };
 
   const supabase = await createClient();
   // The profiles_update_admin RLS policy backstops this: only an ADMIN's
   // request will actually be permitted to change someone else's role.
-  const { error, data } = await supabase.from("profiles").update({ role: role.data }).eq("id", userId).select("id");
-  if (error || !data?.length) return { error: "The role could not be updated." };
+  const { error, data } = await supabase.from("profiles").update({ role: role.data }).eq("id", userId).eq("role", expectedRole.data).select("id");
+  if (error || !data?.length) return { error: "The role could not be updated. Refresh to check whether another administrator changed it." };
 
   revalidatePath("/admin/users");
   revalidatePath("/", "layout");

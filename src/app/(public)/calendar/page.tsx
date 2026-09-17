@@ -1,5 +1,6 @@
 import { getUpcomingEvents } from "@/lib/calendar/queries";
 import { EventCard } from "@/lib/calendar/event-card";
+import { CalendarEmptyState } from "@/components/calendar/empty-state";
 
 export default async function PublicCalendarPage() {
   const { events, error } = await getUpcomingEvents(50, true);
@@ -17,7 +18,7 @@ export default async function PublicCalendarPage() {
       </div>
 
       {error ? <p role="status" className="rounded-md bg-amber-50 p-4 text-sm text-amber-900">{error} You can also visit <a className="underline" href="https://www.iurugby.com/">the current IU Rugby website</a>.</p> : events.length === 0 ? (
-        <p className="text-sm text-gray-600">No upcoming events yet — check back soon.</p>
+        <CalendarEmptyState />
       ) : (
         <ul className="flex flex-col gap-3">
           {events.map((event) => (

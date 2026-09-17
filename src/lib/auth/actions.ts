@@ -6,7 +6,7 @@ import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { signInSchema, signUpSchema } from "@/lib/validators/auth";
 import { safeRedirectPath } from "@/lib/auth/redirect";
-import { getSiteUrl } from "@/lib/site-url";
+import { getConfirmationUrl } from "@/lib/site-url";
 import { hasSupabaseConfiguration } from "@/lib/supabase/config";
 
 export interface AuthActionState {
@@ -39,15 +39,31 @@ export async function signUp(
       // Consumed by the handle_new_user() trigger (0001_profiles.sql)
       // to populate the profile row created on signup.
       data: { first_name: firstName, last_name: lastName },
-      emailRedirectTo: `${getSiteUrl((await headers()).get("origin"))}/auth/callback`,
+      emailRedirectTo: getConfirmationUrl((await headers()).get("origin")),
     },
   });
 
   if (error) {
-    return { error: error.message };
+    return { error: error.code === "weak_password" ? "Choose a stronger password and try again." : "We couldn’t create your account. Try signing in if you already have an account, or try again shortly." };
   }
 
   redirect("/login?confirmEmail=1");
+}
+
+export async function resendConfirmation(
+  _previous: { error: string | null; sent: boolean }, formData: FormData,
+): Promise<{ error: string | null; sent: boolean }> {
+  const email = signInSchema.shape.email.safeParse(formData.get("email"));
+  if (!email.success) return { error: "Enter a valid email address.", sent: false };
+  if (!hasSupabaseConfiguration()) return { error: "Account services are temporarily unavailable. Please try again later.", sent: false };
+  const supabase = await createClient();
+  const { error } = await supabase.auth.resend({ type: "signup", email: email.data, options: {
+    emailRedirectTo: getConfirmationUrl((await headers()).get("origin")),
+  } });
+  if (error?.status === 429) return { error: "Please wait a minute before requesting another link.", sent: false };
+  if (error && ((error.status ?? 0) >= 500 || error.name === "AuthRetryableFetchError")) return { error: "We couldn’t send a link right now. Please try again later.", sent: false };
+  // The same response for unknown, confirmed, and unconfirmed addresses.
+  return { error: null, sent: true };
 }
 
 export async function signIn(
