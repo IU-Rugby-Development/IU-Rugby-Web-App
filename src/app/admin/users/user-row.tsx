@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { setUserRole, toggleUserGroup } from "../actions";
 import { ROLES, type GroupName, type Role } from "@/types/domain";
 
@@ -14,18 +14,20 @@ interface UserRowProps {
 
 export function UserRow({ userId, name, role, allGroups, memberGroupIds }: UserRowProps) {
   const [isPending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
 
   return (
     <tr className="border-b border-gray-100">
-      <td className="py-3 pr-4 text-sm text-gray-900">{name}</td>
+      <td className="py-3 pr-4 text-sm text-gray-900">{name}{error && <p role="alert" className="text-sm text-red-800">{error}</p>}</td>
       <td className="py-3 pr-4">
         <select
-          defaultValue={role}
+          value={role}
+          aria-label={`Role for ${name}`}
           disabled={isPending}
           onChange={(e) => {
             const fd = new FormData();
             fd.set("role", e.target.value);
-            startTransition(() => setUserRole(userId, fd));
+            startTransition(async () => { const result = await setUserRole(userId, fd); setError(result.error); });
           }}
           className="rounded-md border border-gray-300 px-2 py-1 text-sm"
         >
@@ -45,10 +47,12 @@ export function UserRow({ userId, name, role, allGroups, memberGroupIds }: UserR
                 key={group.id}
                 type="button"
                 disabled={isPending}
+                aria-pressed={isMember}
+                aria-label={`${group.name} membership for ${name}`}
                 onClick={() => {
                   const fd = new FormData();
                   fd.set("isMember", String(isMember));
-                  startTransition(() => toggleUserGroup(userId, group.id, fd));
+                  startTransition(async () => { const result = await toggleUserGroup(userId, group.id, fd); setError(result.error); });
                 }}
                 className={`rounded-full px-2.5 py-1 text-xs font-medium ${
                   isMember

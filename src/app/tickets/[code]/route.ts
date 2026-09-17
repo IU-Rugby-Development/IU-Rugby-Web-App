@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isApprovedTicketDestination, TICKET_CODE_PATTERN } from "@/lib/tickets/destination";
+import { hasSupabaseAdminConfiguration } from "@/lib/supabase/config";
 
 /**
  * /tickets/[code]
@@ -24,6 +25,7 @@ export async function GET(
     status: 302, headers: { "Cache-Control": "private, no-store" },
   });
   if (!TICKET_CODE_PATTERN.test(code)) return invalid();
+  if (!hasSupabaseAdminConfiguration()) return NextResponse.redirect(new URL("/tickets?unavailable=1", request.url), { status: 302, headers: { "Cache-Control": "no-store" } });
   const supabase = createAdminClient();
 
   const { data: link } = await supabase

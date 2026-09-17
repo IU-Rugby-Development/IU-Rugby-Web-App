@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 
 const initialState: AuthActionState = { error: null };
 
-export function LoginForm({ redirectTo }: { redirectTo?: string }) {
+export function LoginForm({ redirectTo, available = true }: { redirectTo?: string; available?: boolean }) {
   const [state, formAction, pending] = useActionState(signIn, initialState);
 
   return (
@@ -29,7 +29,7 @@ export function LoginForm({ redirectTo }: { redirectTo?: string }) {
           {state.error}
         </p>
       )}
-      <Button type="submit" disabled={pending}>
+      <Button type="submit" disabled={pending || !available}>
         {pending ? "Signing in..." : "Sign in"}
       </Button>
     </form>

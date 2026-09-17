@@ -20,8 +20,8 @@ export function ProfileForm({
     <form action={formAction} className="flex max-w-sm flex-col gap-4">
       <Field id="firstName" name="firstName" label="First name" defaultValue={firstName} required />
       <Field id="lastName" name="lastName" label="Last name" defaultValue={lastName} required />
-      {state.error && <p className="text-sm text-red-700">{state.error}</p>}
-      {state.success && <p className="text-sm text-green-700">Saved.</p>}
+      {state.error && <p role="alert" className="text-sm text-red-700">{state.error}</p>}
+      {state.success && <p role="status" className="text-sm text-green-700">Saved.</p>}
       <Button type="submit" disabled={pending}>
         {pending ? "Saving..." : "Save changes"}
       </Button>

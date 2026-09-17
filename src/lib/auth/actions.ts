@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { signInSchema, signUpSchema } from "@/lib/validators/auth";
 import { safeRedirectPath } from "@/lib/auth/redirect";
 import { getSiteUrl } from "@/lib/site-url";
+import { hasSupabaseConfiguration } from "@/lib/supabase/config";
 
 export interface AuthActionState {
   error: string | null;
@@ -15,6 +16,7 @@ export async function signUp(
   _prevState: AuthActionState,
   formData: FormData
 ): Promise<AuthActionState> {
+  if (!hasSupabaseConfiguration()) return { error: "Account services are temporarily unavailable. Please try again later." };
   const parsed = signUpSchema.safeParse({
     firstName: formData.get("firstName"),
     lastName: formData.get("lastName"),
@@ -51,6 +53,7 @@ export async function signIn(
   _prevState: AuthActionState,
   formData: FormData
 ): Promise<AuthActionState> {
+  if (!hasSupabaseConfiguration()) return { error: "Account services are temporarily unavailable. Please try again later." };
   const parsed = signInSchema.safeParse({
     email: formData.get("email"),
     password: formData.get("password"),
@@ -73,6 +76,7 @@ export async function signIn(
 }
 
 export async function signOut() {
+  if (!hasSupabaseConfiguration()) redirect("/");
   const supabase = await createClient();
   await supabase.auth.signOut();
   revalidatePath("/", "layout");

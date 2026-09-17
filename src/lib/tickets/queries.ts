@@ -19,6 +19,9 @@ export async function getOwnTicketLinkStats(userId: string): Promise<OwnLinkStat
     .from("ticket_links")
     .select("id, code, active")
     .eq("player_id", userId)
+    .order("active", { ascending: false })
+    .order("created_at", { ascending: false })
+    .limit(1)
     .maybeSingle();
 
   if (!link) return null;
@@ -33,6 +36,7 @@ export async function getOwnTicketLinkStats(userId: string): Promise<OwnLinkStat
 }
 
 export interface LeaderboardEntry {
+  ticketLinkId: string;
   playerId: string;
   name: string;
   referralClicks: number;
@@ -58,6 +62,7 @@ export async function getLeaderboard(limit = 10): Promise<LeaderboardEntry[]> {
   }
 
   return (data ?? []).map((row) => ({
+    ticketLinkId: row.ticket_link_id,
     playerId: row.player_id,
     name: `${row.first_name} ${row.last_name}`.trim(),
     referralClicks: row.referral_clicks,

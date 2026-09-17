@@ -38,7 +38,7 @@ export default async function DashboardTicketsPage() {
         <ol className="flex flex-col gap-2">
           {leaderboard.map((entry, i) => (
             <li
-              key={entry.playerId}
+              key={entry.ticketLinkId}
               className="flex items-center justify-between rounded-lg border border-gray-200 p-3"
             >
               <span className="text-sm text-gray-900">

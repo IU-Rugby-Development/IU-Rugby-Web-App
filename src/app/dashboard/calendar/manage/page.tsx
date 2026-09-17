@@ -4,13 +4,14 @@ import { getCurrentUser } from "@/lib/auth/session";
 import { canManageEvents } from "@/lib/auth/permissions";
 import { getAllEventsForManagement } from "@/lib/calendar/queries";
 import { DeleteEventButton } from "./delete-button";
+import { formatEventTime } from "@/lib/calendar/time";
 
 export default async function ManageEventsPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login?redirectTo=/dashboard/calendar/manage");
   if (!canManageEvents(user)) redirect("/dashboard");
 
-  const events = await getAllEventsForManagement();
+  const { events, error } = await getAllEventsForManagement();
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
@@ -21,7 +22,7 @@ export default async function ManageEventsPage() {
         </Link>
       </div>
 
-      {events.length === 0 ? (
+      {error ? <p role="alert" className="text-sm text-red-800">{error}</p> : events.length === 0 ? (
         <p className="text-sm text-gray-600">No events yet.</p>
       ) : (
         <ul className="flex flex-col gap-2">
@@ -33,7 +34,7 @@ export default async function ManageEventsPage() {
               <div>
                 <p className="font-medium text-gray-900">{event.title}</p>
                 <p className="text-xs text-gray-500">
-                  {new Date(event.starts_at).toLocaleString()} · {event.visibility}
+                  {formatEventTime(event.starts_at)} · {event.visibility}
                 </p>
               </div>
               <div className="flex items-center gap-3">

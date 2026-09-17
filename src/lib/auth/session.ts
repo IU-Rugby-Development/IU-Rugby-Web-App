@@ -1,5 +1,6 @@
 import "server-only";
 import { cache } from "react";
+import { hasSupabaseConfiguration } from "@/lib/supabase/config";
 import { createClient } from "@/lib/supabase/server";
 import type { GroupName, Profile } from "@/types/domain";
 
@@ -19,6 +20,7 @@ export interface CurrentUser {
  * middleware.ts, which only prevents a UI flash, not a real bypass.
  */
 export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
+  if (!hasSupabaseConfiguration()) return null;
   const supabase = await createClient();
 
   const {

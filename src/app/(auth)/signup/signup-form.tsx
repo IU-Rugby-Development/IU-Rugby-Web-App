@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 
 const initialState: AuthActionState = { error: null };
 
-export function SignUpForm() {
+export function SignUpForm({ available = true }: { available?: boolean }) {
   const [state, formAction, pending] = useActionState(signUp, initialState);
 
   return (
@@ -31,7 +31,7 @@ export function SignUpForm() {
           {state.error}
         </p>
       )}
-      <Button type="submit" disabled={pending}>
+      <Button type="submit" disabled={pending || !available}>
         {pending ? "Creating account..." : "Create account"}
       </Button>
     </form>

@@ -35,14 +35,15 @@ export function CreateLinkForm({ players }: { players: { id: string; name: strin
         id="destinationUrl"
         name="destinationUrl"
         label="Destination URL"
-        placeholder="https://checkout.example.com/..."
+        type="url"
+        defaultValue="https://tickets.kuntzstadium.com/"
         required
         className="min-w-[16rem]"
       />
       <Button type="submit" disabled={pending}>
         {pending ? "Creating..." : "Create Link"}
       </Button>
-      {state.error && <p className="w-full text-sm text-red-700">{state.error}</p>}
+      {state.error && <p role="alert" className="w-full text-sm text-red-700">{state.error}</p>}
     </form>
   );
 }

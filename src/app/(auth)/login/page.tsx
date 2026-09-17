@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { LoginForm } from "./login-form";
+import { hasSupabaseConfiguration } from "@/lib/supabase/config";
 
 export default async function LoginPage({
   searchParams,
@@ -7,6 +8,7 @@ export default async function LoginPage({
   searchParams: Promise<{ confirmEmail?: string; redirectTo?: string; error?: string }>;
 }) {
   const params = await searchParams;
+  const available = hasSupabaseConfiguration();
 
   return (
     <div className="mx-auto flex min-h-[70vh] max-w-sm flex-col justify-center gap-6 px-4">
@@ -24,7 +26,8 @@ export default async function LoginPage({
       )}
 
       {params.error === "auth_callback_failed" && <p role="alert" className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-800">That confirmation link could not be completed. Try signing in if you have already confirmed your email, or open the latest confirmation link in the browser where you signed up.</p>}
-      <LoginForm redirectTo={params.redirectTo} />
+      {!available && <p role="status" className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-900">Account services are temporarily unavailable. Please try again later.</p>}
+      <LoginForm redirectTo={params.redirectTo} available={available} />
 
       <p className="text-sm text-gray-600">
         Don&apos;t have an account?{" "}

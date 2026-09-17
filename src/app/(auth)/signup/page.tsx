@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { SignUpForm } from "./signup-form";
+import { hasSupabaseConfiguration } from "@/lib/supabase/config";
 
 export default function SignUpPage() {
+  const available = hasSupabaseConfiguration();
   return (
     <div className="mx-auto flex min-h-[70vh] max-w-sm flex-col justify-center gap-6 px-4">
       <div>
@@ -11,7 +13,8 @@ export default function SignUpPage() {
         </p>
       </div>
 
-      <SignUpForm />
+      {!available && <p role="status" className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-900">Account services are temporarily unavailable. Please try again later.</p>}
+      <SignUpForm available={available} />
 
       <p className="text-sm text-gray-600">
         Already have an account?{" "}
