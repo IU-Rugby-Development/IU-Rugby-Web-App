@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { signInSchema, signUpSchema } from "@/lib/validators/auth";
+import { safeRedirectPath } from "@/lib/auth/redirect";
+import { getSiteUrl } from "@/lib/site-url";
 
 export interface AuthActionState {
   error: string | null;
@@ -34,7 +36,7 @@ export async function signUp(
       // Consumed by the handle_new_user() trigger (0001_profiles.sql)
       // to populate the profile row created on signup.
       data: { first_name: firstName, last_name: lastName },
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
+      emailRedirectTo: `${getSiteUrl()}/auth/callback`,
     },
   });
 
@@ -67,15 +69,7 @@ export async function signIn(
 
   revalidatePath("/", "layout");
 
-  const redirectTo = formData.get("redirectTo");
-  const safeRedirect =
-    typeof redirectTo === "string" &&
-    redirectTo.startsWith("/") &&
-    !redirectTo.startsWith("//")
-      ? redirectTo
-      : "/dashboard";
-
-  redirect(safeRedirect);
+  redirect(safeRedirectPath(formData.get("redirectTo")));
 }
 
 export async function signOut() {

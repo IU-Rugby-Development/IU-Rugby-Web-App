@@ -3,7 +3,7 @@ import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth/session";
 import { canManageEvents } from "@/lib/auth/permissions";
 import { getUpcomingEvents } from "@/lib/calendar/queries";
-import { EventCard } from "@/components/calendar/event-card";
+import { EventCard } from "@/lib/calendar/event-card";
 
 export default async function DashboardCalendarPage() {
   const user = await getCurrentUser();

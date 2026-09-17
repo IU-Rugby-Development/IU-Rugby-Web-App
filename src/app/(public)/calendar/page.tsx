@@ -1,5 +1,5 @@
 import { getUpcomingEvents } from "@/lib/calendar/queries";
-import { EventCard } from "@/components/calendar/event-card";
+import { EventCard } from "@/lib/calendar/event-card";
 
 export default async function PublicCalendarPage() {
   const events = await getUpcomingEvents();
@@ -8,7 +8,7 @@ export default async function PublicCalendarPage() {
     <div className="mx-auto max-w-3xl px-4 py-10">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">Schedule</h1>
-        
+        <a
           href="/calendar/feed.ics"
           className="text-sm font-medium text-red-700 hover:underline"
         >

@@ -21,9 +21,6 @@ export default async function DashboardPage() {
       <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
         <DashboardTile href="/dashboard/tickets" title="Tickets" description="Browse and access tickets" />
         <DashboardTile href="/dashboard/calendar" title="Calendar" description="Upcoming games and events" />
-        <DashboardTile href="/donate" title="Donate" description="Support the program" />
-        <DashboardTile href="/watch" title="Watch" description="Livestreams and broadcasts" />
-        <DashboardTile href="/sponsors" title="Sponsors" description="Our partners" />
         <DashboardTile href="/dashboard/profile" title="Profile" description="Edit your account details" />
 
         {hasPlayerLink(user) && (

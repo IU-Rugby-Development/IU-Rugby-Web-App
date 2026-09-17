@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
+  --background: #fdfcf9;
   --foreground: #171717;
 }
 
@@ -12,15 +12,15 @@
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+:focus-visible { outline: 3px solid #a62424; outline-offset: 4px; }
+.skip-link { position: fixed; top: -6rem; left: 1rem; z-index: 100; padding: 0.75rem 1rem; background: white; color: #790000; }
+.skip-link:focus { top: 1rem; }
+.field-lines { border: 2px solid white; background: repeating-linear-gradient(to bottom, transparent 0, transparent 24%, white 24%, white 24.5%, transparent 24.5%, transparent 25%); }
+.field-lines::after { content: ""; position: absolute; inset: 0 25%; border-inline: 2px dashed white; }
+input, select, textarea { min-width: 0; }

@@ -38,7 +38,7 @@ export function EventCard({ event }: { event: EventRow }) {
         )}
       </div>
       
-        href={`/calendar/${event.id}/ics`}
+      <a href={`/calendar/${event.id}/ics`}
         className="shrink-0 rounded-md border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
         download
       >

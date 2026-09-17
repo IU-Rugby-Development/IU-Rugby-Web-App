@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import type { GroupName, Profile } from "@/types/domain";
 
@@ -17,7 +18,7 @@ export interface CurrentUser {
  * authorization with lib/auth/permissions.ts — do not rely solely on
  * middleware.ts, which only prevents a UI flash, not a real bypass.
  */
-export async function getCurrentUser(): Promise<CurrentUser | null> {
+export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
   const supabase = await createClient();
 
   const {
@@ -46,4 +47,4 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
     profile: profile as Profile,
     groups,
   };
-}
+});

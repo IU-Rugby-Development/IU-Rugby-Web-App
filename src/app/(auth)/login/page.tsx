@@ -4,7 +4,7 @@ import { LoginForm } from "./login-form";
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ confirmEmail?: string; redirectTo?: string }>;
+  searchParams: Promise<{ confirmEmail?: string; redirectTo?: string; error?: string }>;
 }) {
   const params = await searchParams;
 
@@ -23,6 +23,7 @@ export default async function LoginPage({
         </p>
       )}
 
+      {params.error === "auth_callback_failed" && <p role="alert" className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-800">That confirmation link could not be completed. Try signing in if you have already confirmed your email, or open the latest confirmation link in the browser where you signed up.</p>}
       <LoginForm redirectTo={params.redirectTo} />
 
       <p className="text-sm text-gray-600">

@@ -4,80 +4,25 @@ import { isAdmin, isExecutive } from "@/lib/auth/permissions";
 import { signOut } from "@/lib/auth/actions";
 import { Button } from "@/components/ui/button";
 
-const publicLinks = [
-  { href: "/calendar", label: "Calendar" },
-  { href: "/tickets", label: "Tickets" },
-  { href: "/donate", label: "Donate" },
-  { href: "/watch", label: "Watch" },
-  { href: "/sponsors", label: "Sponsors" },
-];
-
 export async function NavBar() {
   const user = await getCurrentUser();
-
+  const linkStyle = "rounded-sm py-2 text-sm font-semibold text-stone-700 hover:text-red-800";
   return (
-    <header className="border-b border-gray-200 bg-white">
-      <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-        <Link href="/" className="text-lg font-bold text-red-700">
-          IU Rugby
-        </Link>
-
-        <div className="hidden items-center gap-6 md:flex">
-          {publicLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="text-sm font-medium text-gray-700 hover:text-red-700"
-            >
-              {link.label}
-            </Link>
-          ))}
-        </div>
-
-        <div className="flex items-center gap-3">
-          {user ? (
-            <>
-              <Link
-                href="/dashboard"
-                className="text-sm font-medium text-gray-700 hover:text-red-700"
-              >
-                Dashboard
-              </Link>
-              {isExecutive(user) && (
-                <Link
-                  href="/dashboard/calendar"
-                  className="hidden text-sm font-medium text-gray-700 hover:text-red-700 sm:inline"
-                >
-                  Manage Events
-                </Link>
-              )}
-              {isAdmin(user) && (
-                <Link
-                  href="/admin"
-                  className="text-sm font-medium text-gray-700 hover:text-red-700"
-                >
-                  Admin
-                </Link>
-              )}
-              <form action={signOut}>
-                <Button variant="secondary" type="submit">
-                  Sign out
-                </Button>
-              </form>
-            </>
-          ) : (
-            <>
-              <Link
-                href="/login"
-                className="text-sm font-medium text-gray-700 hover:text-red-700"
-              >
-                Sign in
-              </Link>
-              <Link href="/signup">
-                <Button>Sign up</Button>
-              </Link>
-            </>
-          )}
+    <header className="border-b border-stone-200 bg-white">
+      <nav aria-label="Main navigation" className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-6 gap-y-2 px-5 py-4">
+        <Link href="/" className="text-xl font-black tracking-tight text-[#790000]">IU RUGBY<span className="mt-0.5 block text-[10px] font-medium uppercase tracking-[0.18em] text-stone-500">Friends of Hoosier Rugby</span></Link>
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-1">
+          <Link href="/calendar" className={linkStyle}>Schedule</Link>
+          <Link href="/tickets" className={linkStyle}>Tickets</Link>
+          {user ? <>
+            <Link href="/dashboard" className={linkStyle}>Dashboard</Link>
+            {isExecutive(user) && <Link href="/dashboard/calendar/manage" className={linkStyle}>Manage events</Link>}
+            {isAdmin(user) && <Link href="/admin" className={linkStyle}>Admin</Link>}
+            <form action={signOut}><Button variant="secondary" type="submit">Sign out</Button></form>
+          </> : <>
+            <Link href="/login" className={linkStyle}>Sign in</Link>
+            <Link href="/signup" className="rounded-md bg-[#790000] px-4 py-2 text-sm font-semibold text-white hover:bg-red-950">Join us</Link>
+          </>}
         </div>
       </nav>
     </header>

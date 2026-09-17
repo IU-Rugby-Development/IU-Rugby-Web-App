@@ -3,7 +3,6 @@ import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth/session";
 import { canManageEvents } from "@/lib/auth/permissions";
 import { getAllEventsForManagement } from "@/lib/calendar/queries";
-import { Button } from "@/components/ui/button";
 import { DeleteEventButton } from "./delete-button";
 
 export default async function ManageEventsPage() {
@@ -17,8 +16,8 @@ export default async function ManageEventsPage() {
     <div className="mx-auto max-w-3xl px-4 py-10">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">Manage Events</h1>
-        <Link href="/dashboard/calendar/manage/new">
-          <Button>New Event</Button>
+        <Link href="/dashboard/calendar/manage/new" className="rounded-md bg-red-800 px-4 py-2 text-sm font-medium text-white hover:bg-red-950">
+          New Event
         </Link>
       </div>
 

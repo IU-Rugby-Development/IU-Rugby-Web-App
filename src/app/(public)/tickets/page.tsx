@@ -1,24 +1,15 @@
-export default async function TicketsPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ invalid?: string }>;
-}) {
-  const params = await searchParams;
+import { TICKET_STOREFRONT } from "@/lib/tickets/destination";
 
+export default async function TicketsPage({ searchParams }: { searchParams: Promise<{ invalid?: string }> }) {
+  const params = await searchParams;
   return (
-    <div className="mx-auto max-w-2xl px-4 py-16 text-center">
-      <h1 className="text-3xl font-bold text-gray-900">Tickets</h1>
-      {params.invalid && (
-        <p className="mt-4 rounded-md bg-yellow-50 px-3 py-2 text-sm text-yellow-800">
-          That referral link isn&apos;t valid or is no longer active, but you
-          can still get tickets below.
-        </p>
-      )}
-      <p className="mt-4 text-gray-600">
-        Ticket sales are handled through our external ticketing provider.
-        Check back closer to game day, or use a player&apos;s referral link
-        to support them directly.
-      </p>
+    <div className="mx-auto max-w-2xl px-5 py-16 sm:py-24">
+      <p className="text-xs font-bold uppercase tracking-[0.2em] text-red-800">Be part of match day</p>
+      <h1 className="mt-3 text-4xl font-bold tracking-tight text-stone-900">See you at the game.</h1>
+      {params.invalid && <p role="status" className="mt-6 rounded-md bg-amber-50 px-4 py-3 text-sm text-amber-900">That referral link is unavailable. You can still browse tickets below.</p>}
+      <p className="mt-6 text-lg leading-8 text-stone-600">Browse available IU Rugby events at the Kuntz Stadium ticket storefront. Ticket selection and payment are handled there through vivenu.</p>
+      <a href={TICKET_STOREFRONT} className="mt-8 inline-flex rounded-md bg-[#790000] px-6 py-3 font-semibold text-white hover:bg-red-950">Buy tickets at Kuntz <span className="ml-3" aria-hidden="true">↗</span></a>
+      <p className="mt-4 text-sm text-stone-500">You&apos;ll continue to the Kuntz Stadium website. Check each listing for the match, location, and ticket details.</p>
     </div>
   );
 }

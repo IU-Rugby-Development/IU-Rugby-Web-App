@@ -3,6 +3,7 @@ import { getCurrentUser } from "@/lib/auth/session";
 import { hasPlayerLink } from "@/lib/auth/permissions";
 import { getOwnTicketLinkStats } from "@/lib/tickets/queries";
 import { CopyLinkButton } from "@/components/tickets/copy-link-button";
+import { getSiteUrl } from "@/lib/site-url";
 
 export default async function MyTicketLinkPage() {
   const user = await getCurrentUser();
@@ -21,7 +22,7 @@ export default async function MyTicketLinkPage() {
   }
 
   const stats = await getOwnTicketLinkStats(user.id);
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "";
+  const siteUrl = getSiteUrl();
 
   if (!stats) {
     return (
@@ -53,6 +54,7 @@ export default async function MyTicketLinkPage() {
       <div className="mt-6 rounded-lg border border-gray-200 p-4">
         <p className="text-sm font-medium text-gray-600">Referral Clicks</p>
         <p className="text-3xl font-bold text-gray-900">{stats.clicks}</p>
+        <p className="mt-2 text-sm text-gray-600">Includes repeat visits and bots. Clicks do not measure ticket sales.</p>
       </div>
     </div>
   );
