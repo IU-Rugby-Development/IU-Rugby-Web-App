@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { safeRedirectPath } from "../src/lib/auth/redirect";
+import { getSiteUrl } from "../src/lib/site-url";
 import { isApprovedTicketDestination } from "../src/lib/tickets/destination";
 import { buildSingleEventICS } from "../src/lib/calendar/ics";
 import { eventLocalToISO, toEventLocalInput } from "../src/lib/calendar/time";
@@ -14,6 +15,31 @@ test("auth redirects stay local for hostile and encoded inputs", () => {
     assert.equal(safeRedirectPath(value), "/dashboard", String(value));
   }
   assert.equal(safeRedirectPath("/dashboard/calendar?view=week"), "/dashboard/calendar?view=week");
+});
+test("Preview signup preserves the trusted browser origin and rejects hostile origins", () => {
+  const names = ["VERCEL_ENV", "VERCEL_URL", "VERCEL_BRANCH_URL", "NEXT_PUBLIC_SITE_URL"] as const;
+  const previous = Object.fromEntries(names.map((name) => [name, process.env[name]]));
+  try {
+    process.env.VERCEL_ENV = "preview";
+    process.env.VERCEL_URL = "club-abc.vercel.app";
+    process.env.VERCEL_BRANCH_URL = "club-git-phase1.vercel.app";
+    process.env.NEXT_PUBLIC_SITE_URL = "https://production.example";
+    const branch = "https://club-git-phase1.vercel.app";
+    assert.equal(getSiteUrl(branch), branch);
+    assert.equal(getSiteUrl("https://club-abc.vercel.app"), "https://club-abc.vercel.app");
+    for (const origin of ["https://evil.example", "https://club-git-phase1.vercel.app.evil.example", "https://production.example", "http://club-git-phase1.vercel.app", "null", null]) {
+      assert.equal(getSiteUrl(origin), branch);
+    }
+    delete process.env.VERCEL_BRANCH_URL;
+    assert.equal(getSiteUrl(), "https://club-abc.vercel.app");
+    process.env.VERCEL_ENV = "production";
+    assert.equal(getSiteUrl("https://evil.example"), "https://production.example");
+  } finally {
+    for (const name of names) {
+      if (previous[name] === undefined) delete process.env[name];
+      else process.env[name] = previous[name];
+    }
+  }
 });
 test("ticket destinations require the exact HTTPS Kuntz host", () => {
   assert.equal(isApprovedTicketDestination("https://tickets.kuntzstadium.com/"), true);

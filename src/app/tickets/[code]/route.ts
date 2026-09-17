@@ -36,7 +36,7 @@ export async function GET(
     .single();
 
   // Invalid or inactive codes fail safely — no information disclosure
-  // about which codes exist, just a normal 404.
+  // about which codes exist, just the public ticket fallback.
   if (!link || !isApprovedTicketDestination(link.destination_url)) return invalid();
 
   const { error } = await supabase.from("ticket_activity").insert({

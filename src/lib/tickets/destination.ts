@@ -1,4 +1,4 @@
-export const TICKET_STOREFRONT = "https://tickets.kuntzstadium.com/";
+export const TICKET_STOREFRONT = "https://tickets.kuntzstadium.com/section/rugby-luu0";
 export const TICKET_CODE_PATTERN = /^[a-z0-9_-]{3,32}$/;
 
 export function isApprovedTicketDestination(value: string): boolean {

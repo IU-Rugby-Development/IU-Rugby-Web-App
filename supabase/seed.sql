@@ -1,14 +1,15 @@
 -- Optional seed data for local development only.
--- Run automatically by `supabase db reset`. Never put real member data here.
+-- Apply manually only to an isolated local database after migrations.
+-- No Supabase CLI project configuration is included. Never add real member data.
 -- Groups are already seeded by 0002_groups.sql; this just adds sample
 -- public content so the homepage/calendar aren't empty locally.
 
 insert into public.events (title, description, event_type, location, starts_at, ends_at, visibility, created_by)
 select
-  'Season Opener vs. Purdue',
-  'First home match of the season.',
+  'Local example event (not a real fixture)',
+  'Synthetic local development content. Do not publish.',
   'GAME',
-  'IU Rugby Field',
+  'Example location',
   now() + interval '14 days',
   now() + interval '14 days 2 hours',
   'PUBLIC',

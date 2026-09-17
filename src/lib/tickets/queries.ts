@@ -46,7 +46,7 @@ export interface LeaderboardEntry {
  * Reads the referral_leaderboard view. Because the view is defined with
  * security_invoker = true, RLS on the underlying tables still applies:
  * a plain MEMBER gets only their own row back; EXECUTIVE/ADMIN get
- * everyone's, which is what the public-facing leaderboard needs.
+ * everyone's. The traffic overview is restricted to staff in the app.
  */
 export async function getLeaderboard(limit = 10): Promise<LeaderboardEntry[]> {
   const supabase = await createClient();

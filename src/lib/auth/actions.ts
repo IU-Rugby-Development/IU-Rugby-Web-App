@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { signInSchema, signUpSchema } from "@/lib/validators/auth";
 import { safeRedirectPath } from "@/lib/auth/redirect";
@@ -38,7 +39,7 @@ export async function signUp(
       // Consumed by the handle_new_user() trigger (0001_profiles.sql)
       // to populate the profile row created on signup.
       data: { first_name: firstName, last_name: lastName },
-      emailRedirectTo: `${getSiteUrl()}/auth/callback`,
+      emailRedirectTo: `${getSiteUrl((await headers()).get("origin"))}/auth/callback`,
     },
   });
 
