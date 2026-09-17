@@ -22,7 +22,7 @@ The repository is buildable and the public shell/ticket path are reviewable in V
 | npm test | PASS; 22 tests |
 | npm run build | PASS; Next.js 16.3.5 on Node 24 |
 
-Fixed malformed calendar anchors, incorrect event-card imports, missing dashboard route wrappers, generated LayoutProps dependence before type generation, and invalid nested link/button markup. No framework migration, broad dependency upgrade or error suppression was used.
+Fixed malformed calendar anchors, incorrect event-card imports, missing dashboard route wrappers, generated LayoutProps dependence before type generation, and invalid nested link/button markup. GitHub's Linux npm 11.19 install also caught missing optional @emnapi/core and @emnapi/runtime lock entries that Windows npm 11.6 accepted; the lockfile was repaired against a clean Linux-targeted dependency tree without upgrading existing package versions. No framework migration, broad dependency upgrade or error suppression was used.
 
 The tests include isolated PostgreSQL/PGlite policy execution, actual referral-route execution with mocked HTTP, safe auth redirects and trusted callback origins, calendar dates/DST, audience validation, and ICS escaping/folding. They do not substitute for live Supabase verification.
 
@@ -85,7 +85,7 @@ See [database setup](database.md), [authentication](authentication.md), and [per
 ## 7. Security
 
 - Service-role code is server-only. The referral handler is the sole application importer of the admin client; no browser bundle contained the service-role variable name/admin-client symbol in the checked build.
-- A heuristic scan of 152 historical blobs and 125 tracked working files found no actual credentials. This is an evidence-based scan, not a guarantee about all possible secret formats.
+- A heuristic scan of 168 historical blobs and 131 tracked working files found no actual credentials. This is an evidence-based scan, not a guarantee about all possible secret formats.
 - .env.local, .vercel and verification artifacts are ignored; .env.example contains placeholders only.
 - Admin mutations recheck ADMIN and validate IDs/roles/groups. Staff event mutations recheck EXECUTIVE/ADMIN. Policies deny member role elevation and self-assigned stakeholder groups in isolated tests.
 - Concrete RLS defect fixed in migration 0006: direct public/client activity inserts could fabricate CLICK/PURCHASE. The migration removes that policy and revokes writes. It also removes anonymous referral-link enumeration.
