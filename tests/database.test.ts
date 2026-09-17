@@ -58,6 +58,30 @@ test("members can change their own names", async () => {
     assert.equal(result.rows[0].first_name, "Changed");
   });
 });
+test("name edits preserve an existing ADMIN role and group changes do not touch it", async () => {
+  await asUser(ids.admin, async () => {
+    const result = await db.query<{ role: string }>("update public.profiles set first_name='Updated' where id=$1 returning role", [ids.admin]);
+    assert.equal(result.rows[0].role, "ADMIN");
+    await db.query("insert into public.group_memberships(user_id,group_id) values ($1,$2)", [ids.admin, playerGroup]);
+    await db.query("delete from public.group_memberships where user_id=$1 and group_id=$2", [ids.admin, playerGroup]);
+    assert.equal((await db.query<{ role: string }>("select role from public.profiles where id=$1", [ids.admin])).rows[0].role, "ADMIN");
+  });
+});
+test("trigger functions are private and authorization helpers remain usable by authenticated RLS", async () => {
+  for (const name of ["handle_new_user()", "set_updated_at()", "is_admin(uuid)", "is_executive_or_admin(uuid)", "is_in_group(uuid,text)"]) {
+    const result = await db.query<{ anon: boolean; authenticated: boolean }>("select has_function_privilege('anon',$1,'EXECUTE') as anon, has_function_privilege('authenticated',$1,'EXECUTE') as authenticated", ["public." + name]);
+    assert.equal(result.rows[0].anon, false);
+    assert.equal(result.rows[0].authenticated, name.startsWith("is_"));
+  }
+});
+test("members cannot delete events, and staff delete cascades audience records", async () => {
+  await asUser(ids.player, async () => assert.equal((await db.query("delete from public.events returning id")).rows.length, 0));
+  await asUser(ids.executive, async () => {
+    const event = await db.query<{ id: string }>("select public.save_event(null,'Temporary test',null,'MEETING',null,'2026-09-23T22:00Z',null,'GROUPS',array[$1::uuid]) as id", [playerGroup]);
+    await db.query("delete from public.events where id=$1", [event.rows[0].id]);
+    assert.equal((await db.query("select * from public.event_groups where event_id=$1", [event.rows[0].id])).rows.length, 0);
+  });
+});
 test("members cannot elevate their role", async () => {
   await assert.rejects(asUser(ids.player, async () => { await db.query("update public.profiles set role='ADMIN' where id=$1", [ids.player]); }), /row-level security|permission denied/i);
 });
