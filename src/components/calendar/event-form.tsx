@@ -36,7 +36,7 @@ export function EventForm({
   }
 
   return (
-    <form action={formAction} className="flex max-w-lg flex-col gap-4">
+    <form action={formAction} onReset={(event) => event.preventDefault()} className="flex max-w-lg flex-col gap-4">
       <Field id="title" name="title" label="Title" required value={draft.title} onChange={updateField} />
       <div className="flex flex-col gap-1">
         <label htmlFor="description" className="text-sm font-medium text-gray-700">
