@@ -1,4 +1,5 @@
 import type { EventRow } from "@/types/domain";
+import { formatEventTime } from "@/lib/calendar/time";
 
 const typeColors: Record<EventRow["event_type"], string> = {
   GAME: "bg-red-100 text-red-800",
@@ -10,8 +11,6 @@ const typeColors: Record<EventRow["event_type"], string> = {
 };
 
 export function EventCard({ event }: { event: EventRow }) {
-  const start = new Date(event.starts_at);
-
   return (
     <li className="flex flex-col gap-2 rounded-lg border border-gray-200 p-4 sm:flex-row sm:items-center sm:justify-between">
       <div>
@@ -24,13 +23,8 @@ export function EventCard({ event }: { event: EventRow }) {
           <h3 className="font-semibold text-gray-900">{event.title}</h3>
         </div>
         <p className="mt-1 text-sm text-gray-600">
-          {start.toLocaleString(undefined, {
-            weekday: "short",
-            month: "short",
-            day: "numeric",
-            hour: "numeric",
-            minute: "2-digit",
-          })}
+          <time dateTime={event.starts_at}>{formatEventTime(event.starts_at)}</time>
+          {event.ends_at && <> – <time dateTime={event.ends_at}>{formatEventTime(event.ends_at)}</time></>}
           {event.location ? ` · ${event.location}` : ""}
         </p>
         {event.description && (
@@ -38,7 +32,7 @@ export function EventCard({ event }: { event: EventRow }) {
         )}
       </div>
       
-        href={`/calendar/${event.id}/ics`}
+      <a href={`/calendar/${event.id}/ics`}
         className="shrink-0 rounded-md border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
         download
       >

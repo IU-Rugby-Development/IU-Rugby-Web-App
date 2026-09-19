@@ -12,9 +12,9 @@ export function DashboardTile({
   return (
     <Link
       href={href}
-      className="flex flex-col gap-1 rounded-lg border border-gray-200 p-4 transition-colors hover:border-red-700 hover:bg-red-50"
+      className="group flex flex-col gap-2 rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition-colors hover:border-red-700 hover:bg-red-50"
     >
-      <span className="font-semibold text-gray-900">{title}</span>
+      <span className="flex items-center justify-between font-semibold text-gray-900">{title}<span aria-hidden="true" className="text-red-800">↗</span></span>
       <span className="text-sm text-gray-600">{description}</span>
     </Link>
   );

@@ -3,48 +3,36 @@ import type { EventRow } from "@/types/domain";
 function toICSDate(iso: string): string {
   return new Date(iso).toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
 }
-
 function escapeICSText(text: string): string {
-  return text.replace(/([,;])/g, "\\$1").replace(/\n/g, "\\n");
+  return text.replace(/\\/g, "\\\\").replace(/\r\n|\r|\n/g, "\\n").replace(/([,;])/g, "\\$1");
 }
-
-function eventToICS(event: EventRow, siteUrl: string): string {
-  const end = event.ends_at ?? event.starts_at;
+// RFC 5545: fold at 75 octets, never split a UTF-8 code point.
+function foldLine(line: string): string {
+  let folded = "", bytes = 0;
+  for (const char of line) {
+    const width = new TextEncoder().encode(char).length;
+    if (bytes + width > 75) { folded += "\r\n "; bytes = 1; }
+    folded += char; bytes += width;
+  }
+  return folded;
+}
+function eventLines(event: EventRow, siteUrl: string): string[] {
   return [
-    "BEGIN:VEVENT",
-    `UID:${event.id}@iurugby`,
-    `DTSTAMP:${toICSDate(event.created_at)}`,
-    `DTSTART:${toICSDate(event.starts_at)}`,
-    `DTEND:${toICSDate(end)}`,
-    `SUMMARY:${escapeICSText(event.title)}`,
-    event.description ? `DESCRIPTION:${escapeICSText(event.description)}` : "",
-    event.location ? `LOCATION:${escapeICSText(event.location)}` : "",
-    `URL:${siteUrl}/calendar`,
-    "END:VEVENT",
-  ]
-    .filter(Boolean)
-    .join("\r\n");
+    "BEGIN:VEVENT", "UID:" + event.id + "@iurugby",
+    "DTSTAMP:" + toICSDate(event.updated_at),
+    "DTSTART:" + toICSDate(event.starts_at),
+    ...(event.ends_at ? ["DTEND:" + toICSDate(event.ends_at)] : []),
+    "SUMMARY:" + escapeICSText(event.title),
+    ...(event.description ? ["DESCRIPTION:" + escapeICSText(event.description)] : []),
+    ...(event.location ? ["LOCATION:" + escapeICSText(event.location)] : []),
+    "URL:" + new URL("/calendar", siteUrl).href, "END:VEVENT",
+  ];
 }
-
-/** Builds a single-event .ics file, used by the "Add to Calendar" button. */
-export function buildSingleEventICS(event: EventRow, siteUrl: string): string {
-  return [
-    "BEGIN:VCALENDAR",
-    "VERSION:2.0",
-    "PRODID:-//IU Rugby//Web App//EN",
-    eventToICS(event, siteUrl),
-    "END:VCALENDAR",
-  ].join("\r\n");
-}
-
-/** Builds a full feed of all provided events, used by /calendar/feed.ics. */
 export function buildCalendarFeedICS(events: EventRow[], siteUrl: string): string {
-  return [
-    "BEGIN:VCALENDAR",
-    "VERSION:2.0",
-    "PRODID:-//IU Rugby//Web App//EN",
-    "CALSCALE:GREGORIAN",
-    ...events.map((e) => eventToICS(e, siteUrl)),
-    "END:VCALENDAR",
-  ].join("\r\n");
+  return ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//IU Rugby//Web App//EN",
+    "CALSCALE:GREGORIAN", ...events.flatMap((event) => eventLines(event, siteUrl)),
+    "END:VCALENDAR"].map(foldLine).join("\r\n") + "\r\n";
+}
+export function buildSingleEventICS(event: EventRow, siteUrl: string): string {
+  return buildCalendarFeedICS([event], siteUrl);
 }

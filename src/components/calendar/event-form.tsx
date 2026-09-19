@@ -3,29 +3,29 @@
 import { useActionState } from "react";
 import { Field } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
-import { EVENT_TYPES, EVENT_VISIBILITY, type EventRow } from "@/types/domain";
+import { EVENT_TYPES, EVENT_VISIBILITY, type EventRow, type Group } from "@/types/domain";
+import { toEventLocalInput } from "@/lib/calendar/time";
 import type { EventActionState } from "@/lib/calendar/types";
 
 const initialState: EventActionState = { error: null };
 
-function toLocalInputValue(iso: string | null): string {
-  if (!iso) return "";
-  const d = new Date(iso);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-
 export function EventForm({
   event,
   action,
+  groups,
+  groupIds = [],
 }: {
   event?: EventRow;
+  groups: Group[];
+  groupIds?: string[];
   action: (state: EventActionState, formData: FormData) => Promise<EventActionState>;
 }) {
   const [state, formAction, pending] = useActionState(action, initialState);
 
   return (
-    <form action={formAction} className="flex max-w-lg flex-col gap-4">
+    // A returned validation error resolves the action and requests a native reset.
+    // Keep the user's draft; successful saves redirect away from this form.
+    <form action={formAction} onReset={(event) => event.preventDefault()} className="flex max-w-lg flex-col gap-4">
       <Field id="title" name="title" label="Title" required defaultValue={event?.title} />
       <div className="flex flex-col gap-1">
         <label htmlFor="description" className="text-sm font-medium text-gray-700">
@@ -39,7 +39,7 @@ export function EventForm({
           className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-red-700 focus:outline-none focus:ring-1 focus:ring-red-700"
         />
       </div>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div className="flex flex-col gap-1">
           <label htmlFor="eventType" className="text-sm font-medium text-gray-700">
             Type
@@ -75,25 +75,31 @@ export function EventForm({
           </select>
         </div>
       </div>
+      <fieldset className="rounded-md border border-gray-200 p-3">
+        <legend className="px-1 text-sm font-medium text-gray-700">Audience for group-only events</legend>
+        <p className="mb-2 text-xs text-gray-600">Choose at least one when visibility is GROUPS. Ignored for public and members-only events.</p>
+        <div className="flex flex-wrap gap-3">{groups.map((group) => <label key={group.id} className="flex items-center gap-2 text-sm"><input type="checkbox" name="groupIds" value={group.id} defaultChecked={groupIds.includes(group.id)} />{group.name}</label>)}</div>
+      </fieldset>
       <Field id="location" name="location" label="Location" defaultValue={event?.location ?? ""} />
-      <div className="grid grid-cols-2 gap-3">
+      <p className="text-sm text-gray-600">All event times use Indianapolis time (Eastern), including daylight saving time.</p>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <Field
           id="startsAt"
           name="startsAt"
           label="Starts at"
           type="datetime-local"
           required
-          defaultValue={toLocalInputValue(event?.starts_at ?? null)}
+          defaultValue={toEventLocalInput(event?.starts_at ?? null)}
         />
         <Field
           id="endsAt"
           name="endsAt"
           label="Ends at"
           type="datetime-local"
-          defaultValue={toLocalInputValue(event?.ends_at ?? null)}
+          defaultValue={toEventLocalInput(event?.ends_at ?? null)}
         />
       </div>
-      {state.error && <p className="text-sm text-red-700">{state.error}</p>}
+      {state.error && <p role="alert" className="text-sm text-red-700">{state.error}</p>}
       <Button type="submit" disabled={pending}>
         {pending ? "Saving..." : event ? "Save changes" : "Create event"}
       </Button>

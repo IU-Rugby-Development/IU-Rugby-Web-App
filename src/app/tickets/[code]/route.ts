@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { isApprovedTicketDestination, TICKET_CODE_PATTERN } from "@/lib/tickets/destination";
+import { hasSupabaseAdminConfiguration } from "@/lib/supabase/config";
 
 /**
  * /tickets/[code]
@@ -19,6 +21,11 @@ export async function GET(
   { params }: { params: Promise<{ code: string }> }
 ) {
   const { code } = await params;
+  const invalid = () => NextResponse.redirect(new URL("/tickets?invalid=1", request.url), {
+    status: 302, headers: { "Cache-Control": "private, no-store" },
+  });
+  if (!TICKET_CODE_PATTERN.test(code)) return invalid();
+  if (!hasSupabaseAdminConfiguration()) return NextResponse.redirect(new URL("/tickets?unavailable=1", request.url), { status: 302, headers: { "Cache-Control": "no-store" } });
   const supabase = createAdminClient();
 
   const { data: link } = await supabase
@@ -29,17 +36,21 @@ export async function GET(
     .single();
 
   // Invalid or inactive codes fail safely — no information disclosure
-  // about which codes exist, just a normal 404.
-  if (!link) {
-    return NextResponse.redirect(new URL("/tickets?invalid=1", request.url), {
-      status: 302,
-    });
-  }
+  // about which codes exist, just the public ticket fallback.
+  if (!link || !isApprovedTicketDestination(link.destination_url)) return invalid();
 
-  await supabase.from("ticket_activity").insert({
+  const { error } = await supabase.from("ticket_activity").insert({
     ticket_link_id: link.id,
     activity_type: "CLICK",
   });
+  if (error) console.error("Referral click could not be recorded:", error.code);
 
-  return NextResponse.redirect(link.destination_url, { status: 302 });
+  return NextResponse.redirect(link.destination_url, {
+    status: 302, headers: { "Cache-Control": "private, no-store" },
+  });
+}
+
+// Link previews and health checks must not create click activity.
+export async function HEAD() {
+  return new Response(null, { status: 204, headers: { "Cache-Control": "private, no-store" } });
 }

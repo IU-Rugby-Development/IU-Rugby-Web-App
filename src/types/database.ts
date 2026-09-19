@@ -178,6 +178,20 @@ export interface Database {
       };
     };
     Functions: {
+      save_event: {
+        Args: {
+          p_event_id: string | null;
+          p_title: string;
+          p_description: string | null;
+          p_event_type: string;
+          p_location: string | null;
+          p_starts_at: string;
+          p_ends_at: string | null;
+          p_visibility: string;
+          p_group_ids: string[];
+        };
+        Returns: string;
+      };
       is_admin: {
         Args: { uid: string };
         Returns: boolean;

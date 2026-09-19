@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { hasSupabaseConfiguration } from "@/lib/supabase/config";
 
 /**
  * Refreshes the Supabase auth session on every matched request and does a
@@ -12,6 +13,15 @@ import { NextResponse, type NextRequest } from "next/server";
  * rules via Row Level Security. See docs/authentication.md.
  */
 export async function updateSession(request: NextRequest) {
+  if (!hasSupabaseConfiguration()) {
+    if (/^\/(dashboard|admin)(\/|$)/.test(request.nextUrl.pathname)) {
+      const url = new URL("/login", request.url);
+      url.searchParams.set("redirectTo", request.nextUrl.pathname);
+      url.searchParams.set("error", "service_unavailable");
+      return NextResponse.redirect(url);
+    }
+    return NextResponse.next({ request });
+  }
   let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(
@@ -46,7 +56,10 @@ export async function updateSession(request: NextRequest) {
   if (!user && isProtectedPath) {
     const redirectUrl = new URL("/login", request.url);
     redirectUrl.searchParams.set("redirectTo", path);
-    return NextResponse.redirect(redirectUrl);
+    const response = NextResponse.redirect(redirectUrl);
+    supabaseResponse.cookies.getAll().forEach((cookie) => response.cookies.set(cookie));
+    response.headers.set("Cache-Control", "private, no-store");
+    return response;
   }
 
   return supabaseResponse;
